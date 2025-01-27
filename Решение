@@ -1,3 +1,13 @@
+# Внимание ниже для взаимодействия с ботом я прописал КОМАНДУ START(т.к. я незнал какую команду писать) ее НУЖНО ИЗМЕНИТЬ 
+
+
+
+
+
+
+
+
+
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup

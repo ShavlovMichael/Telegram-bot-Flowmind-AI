@@ -44,11 +44,22 @@ def get_interval_keyboard():
     ))
     return keyboard.as_markup()
 
-# Внимание я незнаю какой обработчик команды ставить ПОЭТОМУ ПОСТАВИЛ START
+
+
+# Внимание я незнаю какой обработчик команды ставить ПОЭТОМУ ПОСТАВИЛ START 
+# Здесь должна быть логика обработки вопроса №5, которая в конечном итоге отправляет сообщение с клавиатурой выбора интервалов
+
+# Думаю что его надо подключить как то так 
+# async def handle_question_5(message: types.Message):
+#   await message.answer("Выберите интервал отправки сообщений.", reply_markup=get_interval_keyboard())
+
 # Обработчик команды /start
 @dp.message(Command(commands=["start"])) # ИЗМЕНИТЕ КОМАНДУ
 async def start_command(message: types.Message):
     await message.answer("Привет! Установите интервал отправки сообщений.", reply_markup=get_interval_keyboard())
+
+
+
 
 # Обработчик выбора стандартного интервала из предложенных
 @dp.callback_query(lambda c: c.data.startswith("set_interval_"))

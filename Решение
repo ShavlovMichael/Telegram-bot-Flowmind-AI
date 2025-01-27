@@ -1,0 +1,79 @@
+from aiogram import Bot, Dispatcher, types
+from aiogram.filters import Command
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import StatesGroup, State
+import asyncio
+
+# ВСТАВЬТЕ СЮДА ТОКЕН 
+bot = Bot(token=TOKEN)
+dp = Dispatcher()
+
+# Определяем состояния для FSM (Finite State Machine), используемой для обработки пользовательских данных
+class Form(StatesGroup):
+    waiting_for_custom_interval = State()
+
+# Словарь для хранения интервалов пользователей
+user_intervals = {}
+
+# Функция для создания инлайн-клавиатуры с выбором интервала
+def get_interval_keyboard():
+    keyboard = InlineKeyboardBuilder()
+    intervals = [1, 3, 5, 10, 30]
+    for interval in intervals:
+        # Добавляем кнопки с интервалами
+        keyboard.add(types.InlineKeyboardButton(
+            text=f"{interval} секунд",
+            callback_data=f"set_interval_{interval}"
+        ))
+    # Добавляем кнопку для пользовательского ввода
+    keyboard.add(types.InlineKeyboardButton(
+        text="Ввести свой вариант",
+        callback_data="set_custom_interval"
+    ))
+    return keyboard.as_markup()
+
+# Внимание я незнаю какой обработчик команды ставить ПОЭТОМУ ПОСТАВИЛ START
+# Обработчик команды /start, который показывает клавиатуру с интервалами
+@dp.message(Command(commands=["start"])) # ИЗМЕНИТЕ КОМАНДУ
+async def start_command(message: types.Message):
+    await message.answer("Привет! Установите интервал отправки сообщений.", reply_markup=get_interval_keyboard())
+
+# Обработчик выбора стандартного интервала из предложенных
+@dp.callback_query(lambda c: c.data.startswith("set_interval_"))
+async def set_interval(callback_query: types.CallbackQuery):
+    interval = int(callback_query.data.split("_")[-1])
+    user_intervals[callback_query.from_user.id] = interval
+    await callback_query.message.answer(f"Интервал установлен: {interval} секунд")
+
+# Обработчик выбора пользовательского интервала
+@dp.callback_query(lambda c: c.data == "set_custom_interval")
+async def custom_interval(callback_query: types.CallbackQuery, state: FSMContext):
+    await callback_query.message.answer("Введите ваше число (1-100 секунд):")
+    # Устанавливаем состояние для ожидания пользовательского ввода
+    await state.set_state(Form.waiting_for_custom_interval)
+
+# Обработчик ввода пользовательского интервала
+@dp.message(Form.waiting_for_custom_interval)
+async def process_custom_interval(message: types.Message, state: FSMContext):
+    try:
+        interval = int(message.text)
+        if 1 <= interval <= 100:
+            # Сохраняем интервал для пользователя
+            user_intervals[message.from_user.id] = interval
+            await message.answer(f"Интервал установлен: {interval} секунд")
+            # Сбрасываем состояние после успешного ввода
+            await state.clear()
+        else:
+            await message.answer("Число должно быть от 1 до 100. Попробуйте еще раз.")
+    except ValueError:
+        await message.answer("Введенное значение не является числом. Попробуйте еще раз.")
+
+# Функция для запуска бота
+async def main():
+    await dp.start_polling(bot)
+
+# Запуск бота
+if __name__ == '__main__':
+    asyncio.run(main())

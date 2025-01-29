@@ -71,7 +71,9 @@ async def finish_work_command(message: types.Message):
     user_id = message.from_user.id
     if user_id in user_intervals:
         del user_intervals[user_id]
-    await message.answer("Работа завершена, интервал удален.")
+        await message.answer("Работа завершена, интервал удален.")
+    else:
+        await message.answer("Интервал не найден")
 
 # Функция для запуска бота
 async def main():
@@ -80,4 +82,3 @@ async def main():
 # Запуск бота
 if __name__ == '__main__':
     asyncio.run(main())
-
